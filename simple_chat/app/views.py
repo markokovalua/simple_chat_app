@@ -21,7 +21,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
         # check if there is already record and return it if exists
         if len(participants) == 2:
             thread = Thread.objects.filter(
-                participants__in=[participants[0]]).filter(participants__in=[participants[1]]).first()
+                participants__in=[participants[0]], participants__in=[participants[1]]).first()
             if thread:
                 return Response(ThreadSerializer(thread).data, status=status.HTTP_200_OK)
         serializer = self.get_serializer(data=request.data)
@@ -65,7 +65,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         if "thread" in request.query_params:
             expression = expression & Q(thread__id=request.query_params.get("thread"))
         if "is_read" in request.query_params:
-            expression = expression & Q(is_read=False if request.query_params.get("is_read") == 'false' else True)
+            expression = expression & Q(is_read=request.query_params.get("is_read") != 'false')
         messages = self.queryset.filter(expression)
         limit = int(request.query_params.get('limit')) if 'limit' in request.query_params else 10
         index = int(request.query_params.get('offset')) if 'offset' in request.query_params else 1
